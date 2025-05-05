@@ -186,11 +186,12 @@ void printReg(int *reg) {
 int executa_step(char mem[512][17], Instrucao *in, Decodificador *d, int *pc, int *registrador,Pilha *p, int est) {
         if (strcmp(mem[*pc], "0000000000000000") == 0 || *pc > 255) {
                 printf("\nFim do programa!");
-                return 1;
+                return 12;
         } else {
                 switch(est) {
                 case 0:
                         empilha(p,registrador,mem, pc);
+												return 1;
                         break;
                 case 1:
             break;
