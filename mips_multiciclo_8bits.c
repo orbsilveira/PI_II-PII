@@ -203,6 +203,7 @@ int executa_step(char mem[512][17], Instrucao *in, Decodificador *d, int *pc, in
 		}
 		break;
 	case 1:
+		return 0;
 		break;
 	}
 }
@@ -257,18 +258,16 @@ int binarioParaDecimal(const char *bin, int sinal) {
 }
 
 int ULA_op2(int est,Decodificador *d) {
-int saida;	
-switch(est) {
-	case 0:
-		saida = 1;
-		break;
-	case 1:
-	   	break;
-	case 2:
-	   	saida = d->imm;
-	   	break;
+	int saida;	
+	switch(est) {
+		case 0:
+			saida = 1;
+			break;
+		case 1:
+	   		saida = d->imm;
+	   		break;
 	}
-return saida;
+	return saida;
 }
 
 int ULA(int op1,int op2,int opULA,int *flag,int *overflow) {
