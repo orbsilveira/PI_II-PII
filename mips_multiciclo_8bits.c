@@ -22,6 +22,7 @@ typedef struct instrucao {
 	char funct[4];
 	char imm[7];
 	char addr[8];
+	char dado[9];
 } Instrucao;
 
 typedef struct decodificador {
@@ -32,6 +33,7 @@ typedef struct decodificador {
 	int funct;
 	int imm;
 	int addr;
+	int dado;
 	Tipo_Instrucao tipo;
 } Decodificador;
 
@@ -338,5 +340,6 @@ void printInstrucao(Decodificador *d) {
 }
 
 void decodifica_dado(const char *data,Instrucao *in,Decodificador *d) {
-    
+	copiarBits(bin, in->dado, 8, 8);    // Copia os 4 bits do opcode (4 bits)
+	d->dado = binarioParaDecimal(in->dado, 1);
 }
