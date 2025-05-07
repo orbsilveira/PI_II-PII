@@ -117,11 +117,12 @@ void menu() {
 	printf("3 - Imprimir banco de registradores\n");
 	printf("4 - Imprimir todo o simulador\n");
 	printf("5 - Executar step\n");
-	printf("6 - Executar programa\n");
-	printf("7 - Salvar .asm\n");
-	printf("8 - Salvar .dat\n");
-	printf("9 - Volta um step\n");
-	printf("10 - Sair\n\n");
+	printf("6 - Sair\n")
+	//printf("6 - Executar instrucao\n");
+	//printf("7 - Salvar .asm\n");
+	//printf("8 - Salvar .dat\n");
+	//printf("9 - Volta um step\n");
+	//printf("10 - Sair\n\n");
 }
 
 // carrega memoria de instrucoes a partir de um "arquivo.mem"
@@ -262,11 +263,12 @@ switch(est) {
 		saida = 1;
 		break;
 	case 1:
-	    break;
+	   	break;
 	case 2:
-	    saida = d->imm;
-	    break;
+	   	saida = d->imm;
+	   	break;
 	}
+return saida;
 }
 
 int ULA(int op1,int op2,int opULA,int *flag,int *overflow) {
