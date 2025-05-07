@@ -60,6 +60,7 @@ int binarioParaDecimal(const char *bin, int sinal);
 int ULA_op2(int est, Decodificador *d);
 int ULA(int op1,int op2,int opULA,int *flag,int *overflow);
 void printInstrucao(Decodificador *d);
+void decodifica_dado(const char *data,Instrucao *in,Decodificador *d);
 
 int main() {
 	Instrucao in;
@@ -334,4 +335,8 @@ void printInstrucao(Decodificador *d) {
 		printf("j %d", d->addr);
 		break;
 	}
+}
+
+void decodifica_dado(const char *data,Instrucao *in,Decodificador *d) {
+    
 }
