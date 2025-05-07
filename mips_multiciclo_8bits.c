@@ -117,7 +117,7 @@ void menu() {
 	printf("3 - Imprimir banco de registradores\n");
 	printf("4 - Imprimir todo o simulador\n");
 	printf("5 - Executar step\n");
-	printf("6 - Sair\n")
+	printf("6 - Sair\n");
 	//printf("6 - Executar instrucao\n");
 	//printf("7 - Salvar .asm\n");
 	//printf("8 - Salvar .dat\n");
