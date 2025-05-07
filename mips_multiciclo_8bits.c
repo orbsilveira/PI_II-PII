@@ -256,14 +256,15 @@ int binarioParaDecimal(const char *bin, int sinal) {
 }
 
 int ULA_op2(int est,Decodificador *d) {
-	switch(est) {
+int saida;	
+switch(est) {
 	case 0:
-		return 1;
+		saida = 1;
 		break;
 	case 1:
 	    break;
 	case 2:
-	    return d->imm;
+	    saida = d->imm;
 	    break;
 	}
 }
