@@ -3,14 +3,24 @@
 #include <string.h>
 
 struct inst {
-		char opcode[5];
-		char rs[4];
-		char rt[4];
-		char rd[4];
-		char funct[4];
-		char imm[7];
-		char addr[8];
+	char opcode[5];
+	char rs[4];
+	char rt[4];
+	char rd[4];
+	char funct[4];
+	char imm[7];
+	char addr[8];
 	};
+
+struct registradores_intermediarios {
+    char IR[17];
+    int A;
+    int B;
+    int ALUOut;
+    int MDR;
+    int PC;
+};
+
 
 struct inst *instrucao(const char *instr);
 void unidadeDeControle(struct inst *instrucao);
@@ -109,8 +119,8 @@ void unidadeDeControle(struct inst *instrucao) {
                 } else if (strcmp(tipo, "R") == 0) {
                     printf("Execução da operação ULA\n");
                 } else if (strcmp(tipo, "JUMP") == 0) {
-					printf("Execução de JUMP\n");
-				} else {
+			printf("Execução de JUMP\n");
+		} else {
                     printf("Operação desconhecida\n");
                 }
                 break;
