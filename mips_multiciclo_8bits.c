@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MEM char mem[512][17] = {{'\0'}}
+#define MEM char mem[256][17] = {{'\0'}}
 #define REGISTRADOR int registrador[8] = {0}
 #define PC int pc = 0
 
@@ -50,11 +50,11 @@ typedef struct pilha {
 
 void inicia_pilha(Pilha *p);
 void menu();
-int carrega_mem(char mem[512][17]);
-void print_mem_dat(char mem[512][17]);
-void print_mem_inst(char mem[512][17]);
+int carrega_mem(char mem[256][17]);
+void print_mem_dat(char mem[256][17]);
+void print_mem_inst(char mem[256][17]);
 void printReg(int *reg);
-int executa_step(char mem[512][17],Instrucao *in,Decodificador *d,int *pc,int *registrador,Pilha *p,int est);
+int executa_step(char mem[256][17],Instrucao *in,Decodificador *d,int *pc,int *registrador,Pilha *p,int est);
 void empilha(Pilha *p, int *r,char m[][17], int *pc);
 void decodificarInstrucao(const char *bin, Instrucao *in, Decodificador *d);
 void copiarBits(const char *instrucao, char *destino, int inicio, int tamanho);
@@ -125,11 +125,10 @@ void menu() {
 	//printf("7 - Salvar .asm\n");
 	//printf("8 - Salvar .dat\n");
 	//printf("9 - Volta um step\n");
-	//printf("10 - Sair\n\n");
 }
 
-// carrega memoria de instrucoes a partir de um "arquivo.mem"
-int carrega_mem(char mem[512][17]) {
+// carrega memoria
+int carrega_mem(char mem[256][17]) {
 	char arquivo[20];
 	// abre o arquivo em modo leitura
 	printf("Nome do arquivo: ");
@@ -142,7 +141,7 @@ int carrega_mem(char mem[512][17]) {
 	}
 	int i = 0;
 	char linha[20]; // Buffer para leitura
-	while (i < 256 && fgets(linha, sizeof(linha), arq)) {
+	while (i < 128 && fgets(linha, sizeof(linha), arq)) {
 		// Remover quebras de linha e caracteres extras
 		linha[strcspn(linha, "\r\n")] = '\0';
 
@@ -162,9 +161,9 @@ int carrega_mem(char mem[512][17]) {
 }
 
 // imprime memoria de instrucoes
-void print_mem_inst(char mem[512][17]) {
+void print_mem_inst(char mem[256][17]) {
 	printf("\n############## INSTRUCOES ##############\n");
-	for (int i = 0; i < 256; i++)
+	for (int i = 0; i < 128; i++)
 	{
 		printf("\n[%d]: %s\n", i,mem[i]);
 		printf("\n");
@@ -172,9 +171,9 @@ void print_mem_inst(char mem[512][17]) {
 }
 
 // imprime memoria de dados
-void print_mem_dat(char mem[512][17]) {
+void print_mem_dat(char mem[256][17]) {
 	printf("\n############## DADOS ##############\n\n");
-	for(int i=256; i<512; i++) {
+	for(int i=128; i<256; i++) {
 		printf("[%d]. %s   ", i, mem[i]);
 		if (i % 8 == 7)
 		{
@@ -190,11 +189,11 @@ void printReg(int *reg) {
 	}
 }
 
-int executa_step(char mem[512][17], Instrucao *in, Decodificador *d, int *pc, int *registrador,Pilha *p, int est) {
+int executa_step(char mem[256][17], Instrucao *in, Decodificador *d, int *pc, int *registrador,Pilha *p, int est) {
 	int flag = 0, overflow = 0;
 	switch(est) {
 	case 0:
-		if (strcmp(mem[*pc], "0000000000000000") == 0 || *pc > 255) {
+		if (strcmp(mem[*pc], "0000000000000000") == 0 || *pc > 127) {
 			printf("\nFim do programa!");
 			return 0;
 		} else {
