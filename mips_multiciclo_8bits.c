@@ -263,6 +263,7 @@ int binarioParaDecimal(const char *bin, int sinal) {
 }
 
 int controle(int op_code, int est) {
+	
 	if (d->opcode == 11) {
 		return 6;
 	}
