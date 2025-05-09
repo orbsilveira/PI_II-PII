@@ -3,7 +3,7 @@
 #include <string.h>
 
 #define MEM char mem[256][17] = {{'\0'}}
-#define REGISTRADOR int registrador[8] = {0}
+#define REG int reg[8] = {0}
 #define PC int pc = 0
 #define RI char ri[17] = {'\0'}
 #define SAIDA_A int saida_a = 0
@@ -63,7 +63,7 @@ void print_mem(char mem[256][17]);
 void printReg(int *reg);
 void printInstrucao(Decodificador *d);
 
-int executa_step(char mem[256][17],Instrucao *in,Decodificador *d,int *pc,int *br,Pilha *p,int est,char *ri,int *saida_a,int *saida_b,int *ula_saida);
+int executa_step(char mem[256][17],Instrucao *in,Decodificador *d,int *pc,int *reg,Pilha *p,int est,char *ri,int *saida_a,int *saida_b,int *ula_saida);
 int controle(int opcode, int est);
 
 void decodificarInstrucao(const char *bin, Instrucao *in, Decodificador *d);
@@ -80,7 +80,7 @@ int main() {
 	Decodificador d;
 	Pilha p;
 	MEM;
-	REGISTRADOR;
+	REG;
 	PC;
 	RI;
 	SAIDA_A;
@@ -102,11 +102,11 @@ int main() {
 			print_mem(mem);
 			break;
 		case 3:
-			printReg(registrador);
+			printReg(reg);
 			break;
 		case 4:
 			print_mem(mem);
-			printReg(registrador);
+			printReg(br);
 			printf("\n\nPC: %d", pc);
 			printf("\n\nRI: %s", ri);
 			printf("\n\nA: %d", saida_a);
@@ -114,7 +114,7 @@ int main() {
 			printf("\n\nULA-SAIDA: %d", ula_saida);
 			break;
 		case 5:
-			est = executa_step(mem,&in,&d,&pc,registrador,&p,est,ri,&saida_a,&saida_b,&ula_saida);
+			est = executa_step(mem,&in,&d,&pc,reg,&p,est,ri,&saida_a,&saida_b,&ula_saida);
 			break;
 		case 6:
 			printf("Voce saiu!!!");
@@ -199,7 +199,7 @@ void printReg(int *reg) {
 	}
 }
 
-int executa_step(char mem[256][17], Instrucao *in, Decodificador *d, int *pc, int *br,Pilha *p, int est,char *ri,int *saida_a,int *saida_b,int *ula_saida) {
+int executa_step(char mem[256][17], Instrucao *in, Decodificador *d, int *pc, int *reg,Pilha *p, int est,char *ri,int *saida_a,int *saida_b,int *ula_saida) {
 	int flag = 0, overflow = 0;
 	switch(est) {
 	case 0: //Estado 0
@@ -207,7 +207,7 @@ int executa_step(char mem[256][17], Instrucao *in, Decodificador *d, int *pc, in
 			printf("\nFim do programa!");
 			return 0;
 		} else {
-			empilha(p,d,mem,ri,br,pc);
+			empilha(p,d,mem,ri,reg,pc);
 			strcpy(ri,mem[*pc]);
 			*pc = ULA(ULA_op1(est,*saida_a,*pc),ULA_op2(est,*saida_b,d->imm),0,&flag,&overflow);
 			return 1;
@@ -216,8 +216,8 @@ int executa_step(char mem[256][17], Instrucao *in, Decodificador *d, int *pc, in
 	case 1: //Estado 1
 		decodificarInstrucao(ri,in,d);
 		printInstrucao(d);
-		*saida_a = br[d->rs];
-		*saida_b = br[d->rt];
+		*saida_a = reg[d->rs];
+		*saida_b = reg[d->rt];
 		*ula_saida = ULA(ULA_op1(est,*saida_a,*pc),ULA_op2(est,*saida_b,d->imm),0,&flag,&overflow);
 		return controle(d->opcode,est);
 		break;
