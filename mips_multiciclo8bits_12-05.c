@@ -98,6 +98,7 @@ void printInstrucao(Decodificador *d);
 
 int executa_step(char (*mem)[17],Instrucao *in,Decodificador *d,Registradores *,Pilha *p,Sinais *s,ALUout *saida,int *est);
 int controle(int opcode, int *est,Sinais *s);
+void estado(int *est,int opcode);
 
 void decodificarInstrucao(const char *bin, Instrucao *in, Decodificador *d);
 void copiarBits(const char *instrucao, char *destino, int inicio, int tamanho);
@@ -243,7 +244,6 @@ void printReg(int *reg) {
 }
 
 int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d,Registradores *r,Pilha *p,Sinais *s,ALUout *saida,int *est) {
-
 	int jump=0;
 
 	switch(*est) {
@@ -258,22 +258,24 @@ int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d,Registradores 
 			escreve_ri(r->ri,s->EscRI,mem[r->pc]);
 			ULA(ULA_op1(*est,r->pc,r->a),ULA_op2(*est,r->b,d->imm),0,saida);
 			escreve_pc(&r->pc,s->EscPC,saida->resultado);
+			estado(est,d->opcode);
 		}
 		break;
 
 	case 1: //Estado 1
-	    empilha(p,d,mem,r,est);
+		empilha(p,d,mem,r,est);
 		controle(d->opcode,est,s);
 		decodificarInstrucao(r->ri,in,d);
 		printInstrucao(d);
 		r->a = r->br[d->rs];
 		r->b = r->br[d->rt];
 		ULA(ULA_op1(*est,r->a,r->pc),ULA_op2(*est,r->b,d->imm),0,saida);
-        r->ula_saida = saida->resultado;
+		r->ula_saida = saida->resultado;
 		if(d->opcode == 2) {
 			copiarBits(r->ri, in->addr, 8, 8);
 			jump = binarioParaDecimal(in->addr, 0);
 		}
+		estado(est,d->opcode);
 		break;
 
 	case 2: //Estado 2 - executa lw,sw e addi
@@ -281,36 +283,41 @@ int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d,Registradores 
 		controle(d->opcode,est,s);
 		if(d->opcode == 11 || d->opcode == 15) {
 			ULA(r->a, d->imm, 0,saida);
-			r->ula_saida = saida->resultado; 
+			r->ula_saida = saida->resultado;
 		}
 
 		if(d->opcode == 4) {
 			ULA(r->a, d->imm, 0,saida);
-			r->ula_saida = saida->resultado;  
+			r->ula_saida = saida->resultado;
 		}
+		estado(est,d->opcode);
 		break;
 
 	case 3: //Estado 3 - acessa a memC3ria (lw)
 		empilha(p,d,mem,r,est);
 		controle(d->opcode,est,s);
 		strcpy(r->rdm, mem[r->ula_saida]);
+		estado(est,d->opcode);
 		break;
 
 	case 4: //Estado 4 - escreve no registrador (lw)
 		empilha(p,d,mem,r,est);
 		controle(d->opcode,est,s);
 		r->br[d->rt] = binarioParaDecimal(r->rdm, 1);
+		estado(est,d->opcode);
 		break;
 
 	case 5:
 		empilha(p,d,mem,r,est);
 		controle(d->opcode,est,s);
+		estado(est,d->opcode);
 		break;
 
 	case 6: //Estado 6 - escreve no registrador (addi)
 		empilha(p,d,mem,r,est);
 		controle(d->opcode,est,s);
 		r->br[d->rt] = r->ula_saida;
+		estado(est,d->opcode);
 		break;
 
 	case 7: //Estado 7 - executa r
@@ -318,23 +325,27 @@ int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d,Registradores 
 		controle(d->opcode,est,s);
 		ULA(r->a, r->b, d->funct,saida);
 		r->ula_saida = saida->resultado;
+		estado(est,d->opcode);
 		break;
 
 	case 8: //Estado 8 - escreve no registrador (r)
 		empilha(p,d,mem,r,est);
 		controle(d->opcode,est,s);
 		r->br[d->rd] = r->ula_saida;
+		estado(est,d->opcode);
 		break;
 
 	case 9:
 		empilha(p,d,mem,r,est);
 		controle(d->opcode,est,s);
+		estado(est,d->opcode);
 		break;
 
 	case 10: //Estado 10 - executa jump
 		empilha(p,d,mem,r,est);
 		controle(d->opcode,est,s);
 		r->pc = jump;
+		estado(est,d->opcode);
 		break;
 
 	default:
@@ -414,8 +425,24 @@ int controle(int opcode, int *est,Sinais *s) {
 		s->ControleULA = 0;
 		s->FontePC = 0;
 		s->Branch = 0;
+		break;
+	case 1:
+		break;
+	case 2:
+		break;
+	case 3:
+		break;
+	case 7:
+		break;
+	default:
+	}
+}
+
+void estado(int *est, int opcode) {
+	switch(*est) {
+	case 0:
 		*est = 1;
-        break;
+		break;
 	case 1:
 		if(opcode == 11 || opcode == 15 || opcode == 4)
 			*est = 2;
@@ -428,7 +455,7 @@ int controle(int opcode, int *est,Sinais *s) {
 
 		if(opcode == 2)
 			*est = 10;
-        break;
+		break;
 	case 2:
 		if(opcode == 11)
 			*est = 3;
@@ -438,13 +465,13 @@ int controle(int opcode, int *est,Sinais *s) {
 
 		if(opcode == 4)
 			*est = 6;
-        break;
+		break;
 	case 3:
 		*est = 4;
-        break;
+		break;
 	case 7:
 		*est = 8;
-        break;
+		break;
 	default:
 		*est = 0;
 	}
@@ -452,29 +479,29 @@ int controle(int opcode, int *est,Sinais *s) {
 
 // MUX para o operando 1 da ULA
 int ULA_op1(int est,int pc,int a) {
-	int saida;
+	int out = 0;
 	if(est == 0) {
-		saida = pc;
+		out = pc;
 	}
 	else if(est == 2 || est == 7 || est == 9) {
-		saida = a;
+		out = a;
 	}
-	return saida;
+	return out;
 }
 
 // MUX para o operando 2 da ULA
 int ULA_op2(int est,int b,int imm) {
-	int saida;
+	int out = 0;
 	if(est == 7 || est == 9) {
-		saida = b;
+		out = b;
 	}
 	else if(est == 0) {
-		saida = 1;
+		out = 1;
 	}
 	else if(est == 1 || est == 2) {
-		saida = imm;
+		out = imm;
 	}
-	return saida;
+	return out;
 }
 
 void ULA(int op1, int op2, int opULA, ALUout *saida) {
@@ -570,7 +597,7 @@ void escreve_ri(char *ri,int EscRI,char inst[17]) {
 }
 
 void escreve_pc(int *pc,int EscPC,int resul) {
-    if(EscPC == 1) {
+	if(EscPC == 1) {
 		*pc = resul;
 	}
 }
