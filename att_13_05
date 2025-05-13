@@ -82,12 +82,16 @@ typedef struct ALUout {
       overflow;
 } ALUout;
 
-//Sinal para autorizar escrita no RI
+//Controle de escrita
 void escreve_ri(char *ri,int EscRI,char inst[17]);
 void escreve_pc(int *pc, int EscPC, int FontePC, int Branch, int flag_zero);
 
-int IOuD(int IouD, int pc, int imm);
-int PCFonte(int resul, int reg_ula, int FontePC);
+//MUX
+int IOuD(int IouD, int pc, int imm); //Seleciona se o endereco a ser acessado vem do PC ou do IMEDIATO
+int PCFonte(int resul, int reg_ula, int FontePC); // Seleciona se o incremento so PC vem da soma com o IMEDIATO 1 ou do BRANCH EQUAL
+int ULA_op1(int est,int pc,int a); //Seleciona o primeiro operando da ULA
+int ULA_op2(int est,int b,int imm);//Seleciona o segundo operando da ULA
+
 
 void inicia_pilha(Pilha *p);
 void empilha(Pilha *p,Decodificador *d,char (*mem)[17],Registradores *r,int *est);
@@ -108,8 +112,6 @@ void copiarBits(const char *instrucao, char *destino, int inicio, int tamanho);
 int binarioParaDecimal(const char *bin, int sinal);
 void decodifica_dado(const char *data,Instrucao *in,Decodificador *d);
 
-int ULA_op1(int est,int pc,int a);
-int ULA_op2(int est,int b,int imm);
 void ULA(int op1,int op2,int opULA,ALUout *saida);
 
 int main() {
