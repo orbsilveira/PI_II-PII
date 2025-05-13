@@ -20,13 +20,13 @@ typedef struct sinais {
 } Sinais;
 
 typedef struct registradores {
-	int br[8];
-	int pc;
-	char ri[17];
-	int a;
-	int b;
-	int ula_saida;
-	char rdm[17];
+	int pc,
+	    br[8],
+	    a,
+	    b,
+	    ula_saida;
+	char ri[17],
+	    rdm[17];
 } Registradores;
 
 typedef enum tipo {
@@ -37,38 +37,38 @@ typedef enum tipo {
 } Tipo_Instrucao;
 
 typedef struct instrucao {
-	char opcode[5];
-	char rs[4];
-	char rt[4];
-	char rd[4];
-	char funct[4];
-	char imm[7];
-	char addr[8];
-	char dado[9];
+	char opcode[5],
+	    rs[4],
+	    rt[4],
+	    rd[4],
+	    funct[4],
+	    imm[7],
+	    addr[8],
+	    dado[9];
 } Instrucao;
 
 typedef struct decodificador {
-	int opcode;
-	int rs;
-	int rt;
-	int rd;
-	int funct;
-	int imm;
-	int addr;
-	int dado;
+	int opcode,
+    	rt,
+    	rs,
+    	rd,
+    	funct,
+	    imm,
+	    addr,
+	    dado;
 	Tipo_Instrucao tipo;
 } Decodificador;
 
 typedef struct Nodo {
-	int bra[8];
-	int pca;
-	char ria[17];
-	int aa;
-	int ba;
-	int ula_saidaa;
-	char rdma[17];
-	char da[128][17];
-	int est_a;
+	int pca,
+    	bra[8],
+    	aa,
+    	ba,
+    	ula_saidaa,
+	    est_a;
+	char ria[17],
+    	rdma[17],
+	    da[128][17];
 	struct Nodo *prox;
 } Nodo;
 
@@ -77,14 +77,17 @@ typedef struct pilha {
 } Pilha;
 
 typedef struct ALUout {
-	int flag_zero;
-	int resultado;
-	int overflow;
+	int resultado,
+	    flag_zero,
+	    overflow;
 } ALUout;
 
 //Sinal para autorizar escrita no RI
 void escreve_ri(char *ri,int EscRI,char inst[17]);
 void escreve_pc(int *pc,int EscPC,int resul);
+
+int IOuD(int IouD, int pc, int imm);
+int PCFonte(int resul, int reg_ula, int FontePC);
 
 void inicia_pilha(Pilha *p);
 void empilha(Pilha *p,Decodificador *d,char (*mem)[17],Registradores *r,int *est);
@@ -255,9 +258,10 @@ int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d,Registradores 
 		else {
 			empilha(p,d,mem,r,est);
 			controle(d->opcode,est,s);
-			escreve_ri(r->ri,s->EscRI,mem[r->pc]);
+			escreve_ri(r->ri,s->EscRI,mem[IOuD(s->IouD,r->pc,d->imm)]);
+			strcpy(r->rdm,mem[IOuD(s->IouD,r->pc,d->imm)]);
 			ULA(ULA_op1(*est,r->pc,r->a),ULA_op2(*est,r->b,d->imm),0,saida);
-			escreve_pc(&r->pc,s->EscPC,saida->resultado);
+			escreve_pc(&r->pc,s->EscPC,PCFonte(saida->resultado,r->ula_saida,s->FontePC));
 			estado(est,d->opcode);
 		}
 		break;
@@ -427,12 +431,144 @@ int controle(int opcode, int *est,Sinais *s) {
 		s->Branch = 0;
 		break;
 	case 1:
+	    s->EscPC = 0;
+		s->IouD = 0;
+		s->EscMem = 0;
+		s->EscRI = 0;
+		s->RegDest = 1;
+		s->MemParaReg = 0;
+		s->EscReg = 0;
+		s->ULAFontA = 0;
+		s->ULAFontB = 2;
+		s->ControleULA = 0;
+		s->FontePC = 0;
+		s->Branch = 0;
 		break;
 	case 2:
+	    s->EscPC = 0;
+		s->IouD = 0;
+		s->EscMem = 0;
+		s->EscRI = 0;
+		s->RegDest = 0;
+		s->MemParaReg = 0;
+		s->EscReg = 0;
+		s->ULAFontA = 1;
+		s->ULAFontB = 2;
+		s->ControleULA = 0;
+		s->FontePC = 0;
+		s->Branch = 0;
 		break;
 	case 3:
+	    s->EscPC = 0;
+		s->IouD = 1;
+		s->EscMem = 0;
+		s->EscRI = 0;
+		s->RegDest = 0;
+		s->MemParaReg = 0;
+		s->EscReg = 0;
+		s->ULAFontA = 1;
+		s->ULAFontB = 2;
+		s->ControleULA = 0;
+		s->FontePC = 0;
+		s->Branch = 0;
+		break;
+	case 4:
+	    s->EscPC = 0;
+		s->IouD = 1;
+		s->EscMem = 1;
+		s->EscRI = 0;
+		s->RegDest = 0;
+		s->MemParaReg = 1;
+		s->EscReg = 1;
+		s->ULAFontA = 1;
+		s->ULAFontB = 2;
+		s->ControleULA = 0;
+		s->FontePC = 0;
+		s->Branch = 0;
+		break;
+	case 5:
+	    s->EscPC = 0;
+		s->IouD = 1;
+		s->EscMem = 0;
+		s->EscRI = 0;
+		s->RegDest = 0;
+		s->MemParaReg = 0;
+		s->EscReg = 0;
+		s->ULAFontA = 1;
+		s->ULAFontB = 2;
+		s->ControleULA = 0;
+		s->FontePC = 0;
+		s->Branch = 0;
+		break;
+	case 6:
+	    s->EscPC = 0;
+		s->IouD = 0;
+		s->EscMem = 0;
+		s->EscRI = 0;
+		s->RegDest = 0;
+		s->MemParaReg = 0;
+		s->EscReg = 1;
+		s->ULAFontA = 1;
+		s->ULAFontB = 2;
+		s->ControleULA = 0;
+		s->FontePC = 0;
+		s->Branch = 0;
 		break;
 	case 7:
+	    s->EscPC = 0;
+		s->IouD = 0;
+		s->EscMem = 0;
+		s->EscRI = 0;
+		s->RegDest = 1;
+		s->MemParaReg = 0;
+		s->EscReg = 0;
+		s->ULAFontA = 1;
+		s->ULAFontB = 0;
+		s->ControleULA = 0;
+		s->FontePC = 0;
+		s->Branch = 0;
+		break;
+	case 8:
+	    s->EscPC = 0;
+		s->IouD = 0;
+		s->EscMem = 0;
+		s->EscRI = 0;
+		s->RegDest = 1;
+		s->MemParaReg = 0;
+		s->EscReg = 1;
+		s->ULAFontA = 1;
+		s->ULAFontB = 0;
+		s->ControleULA = 0;
+		s->FontePC = 0;
+		s->Branch = 0;
+		break;
+	case 9:
+	    s->EscPC = 0;
+		s->IouD = 0;
+		s->EscMem = 0;
+		s->EscRI = 0;
+		s->RegDest = 0;
+		s->MemParaReg = 0;
+		s->EscReg = 0;
+		s->ULAFontA = 1;
+		s->ULAFontB = 0;
+		s->ControleULA = 0;
+		s->FontePC = 1;
+		s->Branch = 1;
+		break;
+	case 10:
+	    s->EscPC = 1;
+		s->IouD = 0;
+		s->EscMem = 0;
+		s->EscRI = 0;
+		s->RegDest = 0;
+		s->MemParaReg = 0;
+		s->EscReg = 0;
+		s->ULAFontA = 0;
+		s->ULAFontB = 0;
+		s->ControleULA = 0;
+		s->FontePC = 0;
+		s->Branch = 0;
 		break;
 	default:
 	}
@@ -479,29 +615,26 @@ void estado(int *est, int opcode) {
 
 // MUX para o operando 1 da ULA
 int ULA_op1(int est,int pc,int a) {
-	int out = 0;
 	if(est == 0) {
-		out = pc;
+		return pc;
 	}
 	else if(est == 2 || est == 7 || est == 9) {
-		out = a;
+		return a;
 	}
-	return out;
 }
 
 // MUX para o operando 2 da ULA
 int ULA_op2(int est,int b,int imm) {
 	int out = 0;
 	if(est == 7 || est == 9) {
-		out = b;
+		return b;
 	}
 	else if(est == 0) {
-		out = 1;
+		return 1;
 	}
 	else if(est == 1 || est == 2) {
-		out = imm;
+		return imm;
 	}
-	return out;
 }
 
 void ULA(int op1, int op2, int opULA, ALUout *saida) {
@@ -600,4 +733,22 @@ void escreve_pc(int *pc,int EscPC,int resul) {
 	if(EscPC == 1) {
 		*pc = resul;
 	}
+}
+
+int IOuD(int IouD, int pc, int imm) {
+    if(IouD == 0) {
+        return pc;
+    }
+    else if(IouD == 1) {
+        return imm;
+    }
+}
+
+int PCFonte(int resul, int reg_ula, int FontePC) {
+    if(FontePC == 0) {
+        return resul;
+    }
+    else if (FontePC == 1) {
+        return reg_ula;
+    }
 }
