@@ -314,9 +314,10 @@ int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d,Registradores 
     break;
 
   case 5:
-    empilha(p,d,mem,r,est);
-    controle(d->opcode,est,s);
-    estado(est,d->opcode);
+    empilha(p, d, mem, r, est);
+    controle(d->opcode, est, s);
+    sprintf(mem[r->ula_saida], "%d", r->b);//converte o valor de b para string decimal
+    estado(est, d->opcode);
     break;
 
   case 6: //Estado 6 - escreve no registrador (addi)
@@ -365,24 +366,31 @@ int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d,Registradores 
   }
 }
 
-void empilha(Pilha *p,Decodificador *d,char (*mem)[17],Registradores *r,int *est) {
+void empilha(Pilha *p, Decodificador *d, char (*mem)[17], Registradores *r, int *est) {
   Nodo *nNodo = (Nodo*)malloc(sizeof(Nodo));
+  if (nNodo == NULL) {
+    printf("Erro ao alocar memória para novo nó\n");
+    exit(1);
+  }
   int i;
   nNodo->est_a = *est;
-  nNodo->pca=r->pc;
-  for(i=128; i<256; i++) {
-    strcpy(nNodo->da[i],mem[i]);
+  nNodo->pca = r->pc;
+  for(i = 0; i < 128; i++) {
+    strncpy(nNodo->da[i], mem[i+128], 16);
+    nNodo->da[i][16] = '\0';
   }
-  strcpy(nNodo->ria,r->ri);
-  strcpy(nNodo->rdma,r->rdm);
-  for(i=0; i<8; i++) {
+  strncpy(nNodo->ria, r->ri, 16);
+  nNodo->ria[16] = '\0';
+  strncpy(nNodo->rdma, r->rdm, 16);
+  nNodo->rdma[16] = '\0';
+  for(i = 0; i < 8; i++) {
     nNodo->bra[i] = r->br[i];
   }
   nNodo->aa = r->a;
   nNodo->ba = r->b;
-  nNodo->ula_saidaa = r-> ula_saida;
-  nNodo->prox=p->topo;
-  p->topo=nNodo;
+  nNodo->ula_saidaa = r->ula_saida;
+  nNodo->prox = p->topo;
+  p->topo = nNodo;
 }
 
 void decodificarInstrucao(const char *bin, Instrucao *in, Decodificador *d) {
@@ -421,6 +429,9 @@ int binarioParaDecimal(const char *bin, int sinal) {
 
 // Controle para o proximo estado
 int controle(int opcode, int *est,Sinais *s) {
+
+  memset(s, 0, sizeof(Sinais)); //reseta os sinais
+  
   switch(*est) {
   case 0:
     s->EscPC = 1;
@@ -495,7 +506,7 @@ int controle(int opcode, int *est,Sinais *s) {
   case 5:
       s->EscPC = 0;
     s->IouD = 1;
-    s->EscMem = 0;
+    s->EscMem = 1;
     s->EscRI = 0;
     s->RegDest = 0;
     s->MemParaReg = 0;
@@ -530,7 +541,7 @@ int controle(int opcode, int *est,Sinais *s) {
     s->EscReg = 0;
     s->ULAFontA = 1;
     s->ULAFontB = 0;
-    s->ControleULA = 0;
+    s->ControleULA = 1;
     s->FontePC = 0;
     s->Branch = 0;
     break;
@@ -576,7 +587,7 @@ int controle(int opcode, int *est,Sinais *s) {
     s->FontePC = 2;
     s->Branch = 0;
     break;
-  
+
   default:
     break;
   }
