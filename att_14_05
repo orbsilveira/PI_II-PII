@@ -246,6 +246,7 @@ void printReg(int *reg) {
   for(int i=0; i<8; i++) {
     printf("\nREGISTRADOR [%d]:  %d", i, reg[i]);
   }
+  printf("\n");
 }
 
 int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d,Registradores *r,Pilha *p,Sinais *s,ALUout *saida,int *est) {
