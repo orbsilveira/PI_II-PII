@@ -117,6 +117,8 @@ void ULA(int op1,int op2,int opULA,ALUout *saida);
 void int_para_binario_recursiva(int valor, char *binario, int pos);
 void int_para_binario(int valor, char *binario);
 
+void executa_run(char (*mem)[17], Instrucao *in, Decodificador *d, Registradores *r, Pilha *p, Sinais *s, ALUout *saida, int *est);
+
 int main() {
   Sinais s = {0};
   Instrucao in;
@@ -156,16 +158,24 @@ int main() {
       if(strlen(mem[0]) > 0) {
         executa_step(mem,&in,&d,&r,&p,&s,&saida,&est);
       } else {
-        printf("Nenhuma memC3ria carregada!\n");
+        printf("Nenhuma memoria carregada!\n");
       }
       break;
-    case 6:
+      case 6:
+      if(strlen(mem[0]) > 0) {
+        executa_run(mem, &in, &d, &r, &p, &s, &saida, &est);
+      }
+      else {
+        printf("Nenhuma memoria carregada!\n");
+      }
+      break;
+    case 7:
       printf("Voce saiu!!!");
       break;
     default:
       printf("Opcao invalida!");
     }
-  } while(op != 6);
+  } while(op != 7);
   return 0;
 }
 
@@ -180,11 +190,11 @@ void menu() {
   printf("3 - Imprimir banco de registradores\n");
   printf("4 - Imprimir todo o simulador\n");
   printf("5 - Executar step\n");
-  printf("6 - Sair\n");
-  //printf("6 - Executar instrucao\n");
-  //printf("7 - Salvar .asm\n");
-  //printf("8 - Salvar .dat\n");
-  //printf("9 - Volta um step\n");
+  printf("6 - Executar run\n");
+  printf("7 - Sair\n");
+  //printf("8 - Salvar .asm\n");
+  //printf("9 - Salvar .dat\n");
+  //printf("10 - Volta um step\n");
 }
 
 // Carrega memoria
@@ -307,7 +317,7 @@ int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d,Registradores 
   case 3: //Estado 3 - acessa a memC3ria (lw)
     empilha(p,d,mem,r,est);
     controle(d->opcode,est,s);
-    strcpy(r->rdm, mem[r->ula_saida]);
+    strcpy(r->rdm, mem[r->ula_saida+128]);
     estado(est,d->opcode);
     break;
 
@@ -322,9 +332,7 @@ int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d,Registradores 
     empilha(p, d, mem, r, est);
     controle(d->opcode, est, s);
     int_para_binario(r->b, binario);
-
-    // Armazena na memória
-    strcpy(mem[r->ula_saida], binario);
+    strcpy(mem[r->ula_saida+128], binario);
     estado(est, d->opcode);
     break;
 
@@ -814,4 +822,25 @@ void int_para_binario(int valor, char *binario) {
   binario[16] = '\0';
 
   int_para_binario_recursiva(valor, binario, 15);
+}
+
+// Função para executar o run
+void executa_run(char (*mem)[17], Instrucao *in, Decodificador *d, Registradores *r, Pilha *p, Sinais *s, ALUout *saida, int *est) {
+  int executa = 1;
+
+  while(executa == 1) {
+    executa_step(mem, in, d, r, p, s, saida, est);
+    
+    if(r->pc > 127 || strcmp(mem[r->pc], "0000000000000000") == 0) {
+      executa = 0;
+      printf("\n\nExecução concluída. Estado final:");
+      print_mem(mem);
+      printReg(r->br);
+      printf("\nPC: %d", r->pc);
+      printf("\nRI: %s", r->ri);
+      printf("\nA: %d", r->a);
+      printf("\nB: %d", r->b);
+      printf("\nULA-SAIDA: %d\n", r->ula_saida);
+    }
+  }
 }
