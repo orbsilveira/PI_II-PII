@@ -114,6 +114,9 @@ void decodifica_dado(const char *data,Instrucao *in,Decodificador *d);
 
 void ULA(int op1,int op2,int opULA,ALUout *saida);
 
+void int_para_binario_recursiva(int valor, char *binario, int pos);
+void int_para_binario(int valor, char *binario);
+
 int main() {
   Sinais s = {0};
   Instrucao in;
@@ -251,6 +254,7 @@ void printReg(int *reg) {
 
 int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d,Registradores *r,Pilha *p,Sinais *s,ALUout *saida,int *est) {
   int jump=0;
+  char binario[17];
 
   switch(*est) {
   case 0: //Estado 0
@@ -314,10 +318,13 @@ int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d,Registradores 
     estado(est,d->opcode);
     break;
 
-  case 5:
+  case 5: //Estado 5 - escreve na memória
     empilha(p, d, mem, r, est);
     controle(d->opcode, est, s);
-    sprintf(mem[r->ula_saida], "%d", r->b);//converte o valor de b para string decimal
+    int_para_binario(r->b, binario);
+
+    // Armazena na memória
+    strcpy(mem[r->ula_saida], binario);
     estado(est, d->opcode);
     break;
 
@@ -432,7 +439,7 @@ int binarioParaDecimal(const char *bin, int sinal) {
 int controle(int opcode, int *est,Sinais *s) {
 
   memset(s, 0, sizeof(Sinais)); //reseta os sinais
-  
+
   switch(*est) {
   case 0:
     s->EscPC = 1;
@@ -778,4 +785,33 @@ int PCFonte(int resul, int reg_ula, int FontePC) {
     case 2: return reg_ula;
     default: return resul;
   }
+}
+
+// Função auxiliar recursiva
+void int_para_binario_recursiva(int valor, char *binario, int pos) {
+  if(pos < 0) {
+    return;
+  }
+
+  if(valor & 1) {
+    binario[pos] = '1';
+  } 
+  else {
+    binario[pos] = '0';
+  }
+
+  int_para_binario_recursiva(valor >> 1, binario, pos-1);
+}
+
+// Função principal
+void int_para_binario(int valor, char *binario) {
+  int i;
+  
+  for(i = 0; i < 16; i++) {
+    binario[i] = '0';
+  }
+  
+  binario[16] = '\0';
+
+  int_para_binario_recursiva(valor, binario, 15);
 }
