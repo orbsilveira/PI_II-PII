@@ -118,6 +118,7 @@ void int_para_binario_recursiva(int valor, char *binario, int pos);
 void int_para_binario(int valor, char *binario);
 
 void executa_run(char (*mem)[17], Instrucao *in, Decodificador *d, Registradores *r, Pilha *p, Sinais *s, ALUout *saida, int *est);
+void salvarAssembly(char mem[256][17]);
 
 int main() {
   Sinais s = {0};
@@ -170,12 +171,15 @@ int main() {
       }
       break;
     case 7:
+      salvarAssembly(mem);
+      break;
+    case 8:
       printf("Voce saiu!!!");
       break;
     default:
       printf("Opcao invalida!");
     }
-  } while(op != 7);
+  } while(op != 8);
   return 0;
 }
 
@@ -191,8 +195,8 @@ void menu() {
   printf("4 - Imprimir todo o simulador\n");
   printf("5 - Executar step\n");
   printf("6 - Executar run\n");
-  printf("7 - Sair\n");
-  //printf("8 - Salvar .asm\n");
+  printf("7 - Salvar .asm\n");
+  printf("8 - Sair\n");
   //printf("9 - Salvar .dat\n");
   //printf("10 - Volta um step\n");
 }
@@ -843,4 +847,63 @@ void executa_run(char (*mem)[17], Instrucao *in, Decodificador *d, Registradores
       printf("\nULA-SAIDA: %d\n", r->ula_saida);
     }
   }
+}
+
+// funcao para conversao das instrucoes para assembly e salvar "arquivo.asm"
+void salvarAssembly(char mem[256][17]) {
+	char arquivo[20];
+
+	printf("Nome do arquivo .asm: ");
+	scanf("%s", arquivo);
+
+	FILE *arq = fopen(arquivo, "w");
+	if (!arq) {
+		perror("Erro ao criar arquivo");
+		return;
+	}
+
+	for (int i = 0; i < 128; i++) {
+		if (mem[i][0] == '\0') continue; // Ignora posiC'C5es vazias
+
+		struct instrucao inst;
+		Decodificador d;
+		decodificarInstrucao(mem[i], &inst, &d);
+
+		// Converte para assembly e escreve no arquivo
+		switch (d.opcode) {
+		case 0: // Tipo R (add, sub, and, or)
+			switch (d.funct) {
+			case 0:
+				fprintf(arq, "add $%d, $%d, $%d\n", d.rd, d.rs, d.rt);
+				break;
+			case 2:
+				fprintf(arq, "sub $%d, $%d, $%d\n", d.rd, d.rs, d.rt);
+				break;
+			case 4:
+				fprintf(arq, "and $%d, $%d, $%d\n", d.rd, d.rs, d.rt);
+				break;
+			case 5:
+				fprintf(arq, "or $%d, $%d, $%d\n", d.rd, d.rs, d.rt);
+				break;
+			}
+			break;
+		case 4: // addi
+			fprintf(arq, "addi $%d, $%d, %d\n", d.rt, d.rs, d.imm);
+			break;
+		case 11: // lw
+			fprintf(arq, "lw $%d, %d($%d)\n", d.rt, d.imm, d.rs);
+			break;
+		case 15: // sw
+			fprintf(arq, "sw $%d, %d($%d)\n", d.rt, d.imm, d.rs);
+			break;
+		case 8: // beq
+			fprintf(arq, "beq $%d, $%d, %d\n", d.rs, d.rt, d.imm);
+			break;
+		case 2: // j
+			fprintf(arq, "j %d\n", d.addr);
+			break;
+		}
+	}
+	fclose(arq);
+	printf("Arquivo %s salvo com sucesso!\n", arquivo);
 }
