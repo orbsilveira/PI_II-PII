@@ -93,7 +93,6 @@ int ULA_fontA(int pc,int a,int ULAFontA); //Seleciona o primeiro operando da ULA
 int ULA_fontB(int b,int imm,int ULAFontB);//Seleciona o segundo operando da ULA
 int RegiDest(int rt, int rd, int RegDest);
 int MemReg(int ula_saida, int dado, int MemParaReg);
-void escreve_mem(char (*mem)[17],int EscMem,int b,int IouD);
 void escreve_br(int *reg, int EscReg, int dado);
 
 void inicia_pilha(Pilha *p);
@@ -293,15 +292,18 @@ int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d,Registradores 
 			printReg(r);
 			return 1;
 		} else {
+		    if(*est == 1) {
+		        printInstrucao(d);
+		    }
 			empilha(p,d,mem,r,est);
 			controle(d->opcode,est,s);
 			escreve_ri(r->ri,s->EscRI,mem[IOuD(s->IouD,r->pc,d->imm)]);
 			strcpy(r->rdm,mem[IOuD(s->IouD,r->pc,d->imm)]);
-			r->a = r->br[d->rs];
-			r->b = r->br[d->rt];
 			decodificarInstrucao(r->ri,in,d);
 			decodifica_dado(r->rdm,in,d);
 			escreve_br(&r->br[RegiDest(d->rt,d->rd,s->RegDest)],s->EscReg,MemReg(r->ula_saida,d->dado,s->MemParaReg));
+			r->a = r->br[d->rs];
+			r->b = r->br[d->rt];
 			ULA(ULA_fontA(r->pc,r->a,s->ULAFontA),ULA_fontB(r->b,d->imm,s->ULAFontB),0,saida);
 			r->ula_saida = saida->resultado;
 			escreve_pc(&r->pc, s->EscPC, PCFonte(saida->resultado, r->ula_saida, s->FontePC), s->Branch, saida->flag_zero);
@@ -397,30 +399,6 @@ int binarioParaDecimal(const char *bin, int sinal) {
 		valor = valor - (1 << bits);
 	}
 	return valor;
-}
-
-void escreve_mem(char (*mem)[17],int EscMem,int b,int IouD) {
-	if(EscMem == 1) {
-		int indice = 0;
-		char bin[17] = "0000000000000000";
-		if (b == 0) {
-			return;
-		}
-
-		while (b > 0) {
-			bin[indice++] = (b % 2) + '0';
-			b /= 2;
-		}
-
-		bin[indice] = '\0';
-
-		for (int i = 0; i < indice / 2; i++) {
-			char temp = bin[i];
-			bin[i] = bin[indice - i - 1];
-			bin[indice - i - 1] = temp;
-		}
-		strcpy(mem[IouD],bin);
-	}
 }
 
 // Controle para o proximo estado
@@ -696,33 +674,33 @@ void printInstrucao(Decodificador *d) {
 	case 0: // Tipo R (add, sub, and, or)
 		switch (d->funct) {
 		case 0:
-			printf(" add $%d, $%d, $%d", d->rd, d->rs, d->rt);
+			printf(" add $%d, $%d, $%d\n", d->rd, d->rs, d->rt);
 			break;
 		case 2:
-			printf(" sub $%d, $%d, $%d", d->rd, d->rs, d->rt);
+			printf(" sub $%d, $%d, $%d\n", d->rd, d->rs, d->rt);
 			break;
 		case 4:
-			printf(" and $%d, $%d, $%d", d->rd, d->rs, d->rt);
+			printf(" and $%d, $%d, $%d\n", d->rd, d->rs, d->rt);
 			break;
 		case 5:
-			printf(" or $%d, $%d, $%d", d->rd, d->rs, d->rt);
+			printf(" or $%d, $%d, $%d\n", d->rd, d->rs, d->rt);
 			break;
 		}
 		break;
 	case 4: // addi
-		printf(" addi $%d, $%d, %d", d->rt, d->rs, d->imm);
+		printf(" addi $%d, $%d, %d\n", d->rt, d->rs, d->imm);
 		break;
 	case 11: // lw
-		printf(" lw $%d, %d($%d)", d->rt, d->imm, d->rs);
+		printf(" lw $%d, %d($%d)\n", d->rt, d->imm, d->rs);
 		break;
 	case 15: // sw
-		printf(" sw $%d, %d($%d)", d->rt, d->imm, d->rs);
+		printf(" sw $%d, %d($%d)\n", d->rt, d->imm, d->rs);
 		break;
 	case 8: // beq
-		printf(" beq $%d, $%d, %d", d->rs, d->rt, d->imm);
+		printf(" beq $%d, $%d, %d\n", d->rs, d->rt, d->imm);
 		break;
 	case 2: // j
-		printf(" j %d", d->addr);
+		printf(" j %d\n", d->addr);
 		break;
 	}
 }
