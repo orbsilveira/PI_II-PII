@@ -87,7 +87,7 @@ void escreve_ri(char *ri,int EscRI,char inst[17]);
 void escreve_pc(int *pc, int EscPC, int FontePC, int Branch, int flag_zero);
 
 //MUX
-int IOuD(int IouD, int pc, int imm); //Seleciona se o endereco a ser acessado vem do PC ou do IMEDIATO
+int IOuD(int IouD, int pc, int ula_saida); //Seleciona se o endereco a ser acessado vem do PC ou do IMEDIATO
 int PCFonte(int resul, int reg_ula, int FontePC); // Seleciona se o incremento so PC vem da soma com o IMEDIATO 1 ou do BRANCH EQUAL
 int ULA_fontA(int pc,int a,int ULAFontA); //Seleciona o primeiro operando da ULA
 int ULA_fontB(int b,int imm,int ULAFontB);//Seleciona o segundo operando da ULA
@@ -285,38 +285,58 @@ void printReg(Registradores *r) {
 }
 
 int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d, Registradores *r, Pilha *p, Sinais *s, ALUout *saida, int *est) {
-  int jump=0;
+    
   if(r->pc > 127) {
-    printf("Posiacao invalida apontada pelo PC!\n");
-  } else {
-    if(*est == 0 && strcmp(mem[r->pc], "0000000000000000") == 0) {
-      printf(" ########## EXECUCAO CONCLUIDA! ##########\n");
-      printf("              ESTADO FINAL : \n");
-      print_mem(mem);
-      print_br(r->br);
-      printReg(r);
-      return 1;
-    } else {
-      empilha(p, d, mem, r, est);
-      controle(d->opcode, est,s);
-      escreve_ri(r->ri, s->EscRI, mem[IOuD(s->IouD, r->pc, d->imm)]);
-      strcpy(r->rdm, mem[IOuD(s->IouD, r->pc, d->imm)]);
-      decodificarInstrucao(r->ri, in, d);
+    printf("Posição inválida apontada pelo PC!\n");
+    return 0;
+  }
+
+  if(*est == 0 && strcmp(mem[r->pc], "0000000000000000") == 0) {
+    printf("########## EXECUÇÃO CONCLUÍDA! ##########\n");
+    return 1;
+  }
+
+  empilha(p, d, mem, r, est);
+  controle(d->opcode, est, s);
+  escreve_ri(r->ri, s->EscRI, mem[r->pc]);
+
+  //atualiza o rdm acessando memória de dados
+  if(s->IouD == 1) {
+    int endereco_dados = r->ula_saida + 128;
+    if(endereco_dados >= 128 && endereco_dados < 256) {
+      strcpy(r->rdm, mem[endereco_dados]);
       decodifica_dado(r->rdm, in, d);
-      escreve_br(&r->br[RegiDest(d->rt, d->rd, s->RegDest)], s->EscReg, MemReg(r->ula_saida, d->dado, s->MemParaReg));
-      r->a = r->br[d->rs];
-      r->b = r->br[d->rt];
-      ULA(ULA_fontA(r->pc, r->a, s->ULAFontA),ULA_fontB(r->b, d->imm, s->ULAFontB), s->ControleULA, saida);
-      r->ula_saida = saida->resultado;
-      escreve_pc(&r->pc, s->EscPC, PCFonte(saida->resultado, r->ula_saida, s->FontePC), s->Branch, saida->flag_zero);
-      if(d->opcode == 2) {
-        copiarBits(r->ri, in->addr, 8, 8);
-        jump = binarioParaDecimal(in->addr, 0);
-      }
-      infoEstado(est, d, saida);
-      estado(est, d->opcode);
     }
   }
+
+  decodificarInstrucao(r->ri, in, d);
+
+  //executa operação da ula
+  ULA(ULA_fontA(r->pc, r->a, s->ULAFontA), ULA_fontB(r->b, d->imm, s->ULAFontB), s->ControleULA, saida);
+  r->ula_saida = saida->resultado;
+
+  escreve_br(&r->br[RegiDest(d->rt, d->rd, s->RegDest)], s->EscReg, MemReg(r->ula_saida, d->dado, s->MemParaReg));
+
+  r->a = r->br[d->rs];
+  r->b = r->br[d->rt];
+
+  //escreve na memória de dados (128-255) se sinal ativo
+  if(s->EscMem == 1) {
+    int endereco_dados = r->ula_saida + 128;
+    if(endereco_dados >= 128 && endereco_dados < 256) {
+      char binario[17];
+      int_para_binario(r->b, binario);
+      strcpy(mem[endereco_dados], binario);
+    }
+  }
+
+  escreve_pc(&r->pc, s->EscPC, PCFonte(saida->resultado, r->ula_saida, s->FontePC), s->Branch, saida->flag_zero);
+
+  infoEstado(est, d, saida);
+
+  estado(est, d->opcode);
+
+  return 0;
 }
 
 //Funcao para informações do estado
@@ -395,6 +415,7 @@ void infoEstado(int *est, Decodificador *d, ALUout *saida) {
     break;
   }
 }
+
 
 int RegiDest(int rt, int rd, int RegDest) {
   switch (RegDest) {
@@ -812,13 +833,11 @@ void escreve_pc(int *pc, int EscPC, int FontePC, int Branch, int flag_zero) {
   }
 }
 
-int IOuD(int IouD, int pc, int imm) {
-  if(IouD == 0) {
+int IOuD(int IouD, int pc, int ula_saida) {
+    if (IouD == 1) {
+        return ula_saida + 128;
+    }
     return pc;
-  }
-  else if(IouD == 1) {
-    return imm;
-  }
 }
 
 int PCFonte(int resul, int reg_ula, int FontePC) {
