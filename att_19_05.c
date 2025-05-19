@@ -88,7 +88,7 @@ void escreve_pc(int *pc, int EscPC, int FontePC, int Branch, int flag_zero);
 
 //MUX
 int IOuD(int IouD, int pc, int ula_saida); //Seleciona se o endereco a ser acessado vem do PC ou do IMEDIATO
-int PCFonte(int resul, int reg_ula, int FontePC); // Seleciona se o incremento so PC vem da soma com o IMEDIATO 1 ou do BRANCH EQUAL
+int PCFonte(int resul, int reg_ula, int FontePC); // Seleciona se o incremento do PC vem da soma com o IMEDIATO 1 ou do BRANCH EQUAL
 int ULA_fontA(int pc,int a,int ULAFontA); //Seleciona o primeiro operando da ULA
 int ULA_fontB(int b,int imm,int ULAFontB);//Seleciona o segundo operando da ULA
 int RegiDest(int rt, int rd, int RegDest);
@@ -285,6 +285,9 @@ void printReg(Registradores *r) {
 }
 
 int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d, Registradores *r, Pilha *p, Sinais *s, ALUout *saida, int *est) {
+
+  int endereco_dados;
+  char binario[17];
     
   if(r->pc > 127) {
     printf("Posição inválida apontada pelo PC!\n");
@@ -302,7 +305,7 @@ int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d, Registradores
 
   //atualiza o rdm acessando memória de dados
   if(s->IouD == 1) {
-    int endereco_dados = r->ula_saida + 128;
+    endereco_dados = r->ula_saida + 128;
     if(endereco_dados >= 128 && endereco_dados < 256) {
       strcpy(r->rdm, mem[endereco_dados]);
       decodifica_dado(r->rdm, in, d);
@@ -322,9 +325,8 @@ int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d, Registradores
 
   //escreve na memória de dados (128-255) se sinal ativo
   if(s->EscMem == 1) {
-    int endereco_dados = r->ula_saida + 128;
+    endereco_dados = r->ula_saida + 128;
     if(endereco_dados >= 128 && endereco_dados < 256) {
-      char binario[17];
       int_para_binario(r->b, binario);
       strcpy(mem[endereco_dados], binario);
     }
