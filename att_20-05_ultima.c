@@ -296,15 +296,14 @@ void controle_acesso_memoria(char (*mem)[17],Instrucao *in,Decodificador *d,Regi
 		    temp_a = r->a;
 		    temp_b = r->b;
 		    temp_saidaULA = r->ula_saida;
-			char addi[10][17];
+			char addi[9][17];
 			strcpy(addi[0],"0100000001010000");
-			strcpy(addi[8],"0100000000000000");
-			strcpy(addi[9],"0000000000000000");
+			strcpy(addi[8],"0000000000000000");
 			addi[0][16] = '\0';
 			addi[0][4] = in->rs[0];
 			addi[0][5] = in->rs[1];
 			addi[0][6] = in->rs[2];
-			for(int i=1; i<9; i++) {
+			for(int i=1; i<8; i++) {
 				strcpy(addi[i],addi[0]);
 			}
 			while(executa_step(addi, in, d, r, p, s, saida, est) != 1) {
