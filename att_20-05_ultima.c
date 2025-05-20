@@ -289,7 +289,7 @@ void printReg(Registradores *r) {
 void controle_acesso_memoria(char (*mem)[17],Instrucao *in,Decodificador *d,Registradores *r,Pilha *p,Sinais *s,ALUout *saida,int *est) {
 	decodificarInstrucao(mem[r->pc], in, d);
 	if(d->opcode == 11 || d->opcode == 15) {
-		if(*est == 0) {
+		if(*est == 1) {
 		    int temp_rs,tem_pc,temp_a,temp_b,temp_saidaULA;
 		    temp_rs = r->br[d->rs];
 		    tem_pc = r->pc;
