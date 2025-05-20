@@ -106,7 +106,7 @@ void print_mem(char mem[256][17]);
 void print_br(int *r);
 void printReg(Registradores *r);
 void printInstrucao(Decodificador *d);
-int executa_step(char (*mem)[17],Instrucao *in,Decodificador *d,Registradores *,Pilha *p,Sinais *s,ALUout *saida,int *est);
+int executa_step(char (*mem)[17],Instrucao *in,Decodificador *d,Registradores *,Pilha *p,Sinais *s,ALUout *saida,int *est, int *p_c);
 int controle(int opcode, int *est,Sinais *s);
 void estado(int *est,int opcode);
 void decodificarInstrucao(const char *bin, Instrucao *in, Decodificador *d);
@@ -289,12 +289,11 @@ void printReg(Registradores *r) {
 void controle_acesso_memoria(char (*mem)[17],Instrucao *in,Decodificador *d,Registradores *r,Pilha *p,Sinais *s,ALUout *saida,int *est) {
 	if(d->opcode == 11 || d->opcode == 15) {
 		if(*est == 1) {
-			int temp_rs,tem_pc,temp_a,temp_b,temp_saidaULA;
+			int temp_rs,tem_pc,temp_a,temp_b,temp_saidaULA, p_c = 0;
 			temp_rs = r->br[d->rs];
 			temp_a = r->a;
 			temp_b = r->b;
 			temp_saidaULA = r->ula_saida;
-			r->pc = 0;
 			char addi[9][17];
 			strcpy(addi[0],"0100000001010000");
 			strcpy(addi[8],"0000000000000000");
@@ -305,20 +304,19 @@ void controle_acesso_memoria(char (*mem)[17],Instrucao *in,Decodificador *d,Regi
 			for(int i=1; i<8; i++) {
 				strcpy(addi[i],addi[0]);
 			}
-			while(executa_step(addi, in, d, r, p, s, saida, est) != 1) {
+			while(executa_step(addi, in, d, r, p, s, saida, est,&p_c) != 1) {
 			}
 			r->br[d->rs] = temp_rs;
-			r->pc -= 7;
 			r->ula_saida = temp_saidaULA;
 			r->a = temp_a;
 			r->b = temp_b;
 		}
 	} else {
-		executa_step(mem, in, d, r, p, s, saida, est);
+		executa_step(mem, in, d, r, p, s, saida, est,&r->pc);
 	}
 }
 
-int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d, Registradores *r, Pilha *p, Sinais *s, ALUout *saida, int *est) {
+int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d, Registradores *r, Pilha *p, Sinais *s, ALUout *saida, int *est, int *p_c) {
 
 	int endereco_dados;
 	char binario[17];
@@ -328,7 +326,7 @@ int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d, Registradores
 		return 0;
 	}
 
-	if(*est == 0 && strcmp(mem[r->pc], "0000000000000000") == 0) {
+	if(*est == 0 && strcmp(mem[*p_c], "0000000000000000") == 0) {
 		printf("########## EXECUCAO CONCLUCDA! ##########\n");
 		return 1;
 	}
@@ -341,7 +339,7 @@ int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d, Registradores
 	decodificarInstrucao(r->ri, in, d);
 
 	//executa operaC'C#o da ula
-	ULA(ULA_fontA(r->pc, r->a, s->ULAFontA), ULA_fontB(r->b, d->imm, s->ULAFontB), s->ControleULA, saida);
+	ULA(ULA_fontA(*p_c, r->a, s->ULAFontA), ULA_fontB(r->b, d->imm, s->ULAFontB), s->ControleULA, saida);
 	r->ula_saida = saida->resultado;
 
 	escreve_br(&r->br[RegiDest(d->rt, d->rd, s->RegDest)], s->EscReg, MemReg(r->ula_saida, d->dado, s->MemParaReg));
@@ -349,7 +347,7 @@ int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d, Registradores
 	r->a = r->br[d->rs];
 	r->b = r->br[d->rt];
 
-	escreve_pc(&r->pc, s->EscPC, PCFonte(saida->resultado, r->ula_saida, s->FontePC), s->Branch, saida->flag_zero);
+	escreve_pc(p_c, s->EscPC, PCFonte(saida->resultado, r->ula_saida, s->FontePC), s->Branch, saida->flag_zero);
 
 	infoEstado(est, d, saida);
 
@@ -904,7 +902,7 @@ void int_para_binario(int valor, char *binario) {
 
 // Funcao para executar o run
 void executa_run(char (*mem)[17], Instrucao *in, Decodificador *d, Registradores *r, Pilha *p, Sinais *s, ALUout *saida, int *est) {
-	while(executa_step(mem, in, d, r, p, s, saida, est) != 1) {
+	while(executa_step(mem, in, d, r, p, s, saida, est,&r->pc) != 1) {
 	}
 }
 
@@ -968,7 +966,7 @@ void salvarAssembly(char mem[256][17]) {
 }
 
 // Funcao de execucao do step back
-int step_back(Pilha *p, Registradores *r, char (*mem)[17], int *est,0) {
+int step_back(Pilha *p, Registradores *r, char (*mem)[17], int *est,int sinal) {
 	int i;
 
 	if(limite_back(p) == 1) {
