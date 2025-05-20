@@ -335,17 +335,31 @@ int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d, Registradores
 	controle(d->opcode, est, s);
 	escreve_ri(r->ri, s->EscRI, mem[r->pc]);
 
-
-	decodificarInstrucao(r->ri, in, d);
-
-	//executa operaC'C#o da ula
-	ULA(ULA_fontA(*p_c, r->a, s->ULAFontA), ULA_fontB(r->b, d->imm, s->ULAFontB), s->ControleULA, saida);
-	r->ula_saida = saida->resultado;
-
-	escreve_br(&r->br[RegiDest(d->rt, d->rd, s->RegDest)], s->EscReg, MemReg(r->ula_saida, d->dado, s->MemParaReg));
+	if(s->IouD == 1) {
+		if(r->br[d->rs] >= 128 && r->br[d->rs] < 256) {
+			strcpy(r->rdm, mem[r->br[d->rs]]);
+			decodifica_dado(r->rdm, in, d);
+		}
+	}
 
 	r->a = r->br[d->rs];
 	r->b = r->br[d->rt];
+
+	//executa operaC'C#o da ula
+
+	escreve_br(&r->br[RegiDest(d->rt, d->rd, s->RegDest)], s->EscReg, MemReg(r->ula_saida, d->dado, s->MemParaReg));
+	
+	decodificarInstrucao(r->ri, in, d);
+	
+	ULA(ULA_fontA(*p_c, r->a, s->ULAFontA), ULA_fontB(r->b, d->imm, s->ULAFontB), s->ControleULA, saida);
+	r->ula_saida = saida->resultado;
+
+	if(s->EscMem == 1) {
+		if(r->br[d->rs] >= 128 && r->br[d->rs] < 256) {
+			int_para_binario(r->b, binario);
+			strcpy(mem[r->br[d->rs]], binario);
+		}
+	}
 
 	escreve_pc(p_c, s->EscPC, PCFonte(saida->resultado, r->ula_saida, s->FontePC), s->Branch, saida->flag_zero);
 
