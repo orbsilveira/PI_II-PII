@@ -309,7 +309,7 @@ void controle_acesso_memoria(char (*mem)[17],Instrucao *in,Decodificador *d,Regi
 			while(executa_step(addi, in, d, r, p, s, saida, est) != 1) {
 			}
 			r->br[d->rs] = temp_rs;
-		    r->pc -= 8;
+		    r->pc -= 7;
 		    r->ula_saida = temp_saidaULA;
 		    r->a = temp_a;
 		    r->b = temp_b;
