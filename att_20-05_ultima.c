@@ -118,7 +118,7 @@ void int_para_binario_recursiva(int valor, char *binario, int pos);
 void int_para_binario(int valor, char *binario);
 void executa_run(char (*mem)[17], Instrucao *in, Decodificador *d, Registradores *r, Pilha *p, Sinais *s, ALUout *saida, int *est);
 void salvarAssembly(char mem[256][17]);
-int step_back(Pilha *p, Registradores *r, char (*mem)[17], int *est);
+int step_back(Pilha *p, Registradores *r, char (*mem)[17], int *est, int sinal);
 int limite_back(Pilha *p);
 void infoEstado(int *est, Decodificador *d, ALUout *saida);
 
@@ -180,7 +180,7 @@ int main() {
 			break;
 		case 8:
 			printf("Step Back");
-			step_back(&p, &r, mem, &est);
+			step_back(&p, &r, mem, &est,0);
 			break;
 		case 9:
 			printf("Voce saiu!!!");
@@ -968,7 +968,7 @@ void salvarAssembly(char mem[256][17]) {
 }
 
 // Funcao de execucao do step back
-int step_back(Pilha *p, Registradores *r, char (*mem)[17], int *est) {
+int step_back(Pilha *p, Registradores *r, char (*mem)[17], int *est,0) {
 	int i;
 
 	if(limite_back(p) == 1) {
