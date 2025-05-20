@@ -287,16 +287,14 @@ void printReg(Registradores *r) {
 }
 
 void controle_acesso_memoria(char (*mem)[17],Instrucao *in,Decodificador *d,Registradores *r,Pilha *p,Sinais *s,ALUout *saida,int *est) {
-	decodificarInstrucao(mem[r->pc], in, d);
 	if(d->opcode == 11 || d->opcode == 15) {
-		if(*est == 2) {
-		    int temp_rs,tem_pc,temp_a,temp_b,temp_saidaULA;
-		    temp_rs = r->br[d->rs];
-		    tem_pc = r->pc;
-		    temp_a = r->a;
-		    temp_b = r->b;
-		    temp_saidaULA = r->ula_saida;
-				r->pc = 0;
+		if(*est == 1) {
+			int temp_rs,tem_pc,temp_a,temp_b,temp_saidaULA;
+			temp_rs = r->br[d->rs];
+			temp_a = r->a;
+			temp_b = r->b;
+			temp_saidaULA = r->ula_saida;
+			r->pc = 0;
 			char addi[9][17];
 			strcpy(addi[0],"0100000001010000");
 			strcpy(addi[8],"0000000000000000");
@@ -310,10 +308,10 @@ void controle_acesso_memoria(char (*mem)[17],Instrucao *in,Decodificador *d,Regi
 			while(executa_step(addi, in, d, r, p, s, saida, est) != 1) {
 			}
 			r->br[d->rs] = temp_rs;
-		    r->pc -= 7;
-		    r->ula_saida = temp_saidaULA;
-		    r->a = temp_a;
-		    r->b = temp_b;
+			r->pc -= 7;
+			r->ula_saida = temp_saidaULA;
+			r->a = temp_a;
+			r->b = temp_b;
 		}
 	} else {
 		executa_step(mem, in, d, r, p, s, saida, est);
