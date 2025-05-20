@@ -296,6 +296,7 @@ void controle_acesso_memoria(char (*mem)[17],Instrucao *in,Decodificador *d,Regi
 		    temp_a = r->a;
 		    temp_b = r->b;
 		    temp_saidaULA = r->ula_saida;
+				r->pc = 0;
 			char addi[9][17];
 			strcpy(addi[0],"0100000001010000");
 			strcpy(addi[8],"0000000000000000");
