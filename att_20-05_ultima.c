@@ -290,7 +290,7 @@ void controle_acesso_memoria(char (*mem)[17],Instrucao *in,Decodificador *d,Regi
 	if(d->opcode == 11 || d->opcode == 15) {
 		if(*est == 1) {
 			int temp_rs,tem_pc,temp_a,temp_b,temp_saidaULA, p_c = 0;
-			temp_rs = r->br[d->rs];
+			//temp_rs = r->br[d->rs];
 			/*temp_a = r->a;
 			temp_b = r->b;
 			temp_saidaULA = r->ula_saida;*/
@@ -306,7 +306,9 @@ void controle_acesso_memoria(char (*mem)[17],Instrucao *in,Decodificador *d,Regi
 			}
 				while(executa_step(addi, in, d, r, p, s, saida, est,&p_c) != 1) {
 			}
-			r->br[d->rs] = temp_rs;
+			strcpy(r->ri,mem[p->topo->pca]);
+			decodificarInstrucao(r->ri, in, d);
+			//r->br[d->rs] = temp_rs;
 			*est = 2;
 			/*r->ula_saida = temp_saidaULA;
 			r->a = temp_a;
