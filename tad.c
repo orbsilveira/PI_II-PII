@@ -115,7 +115,7 @@ int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d, Registradores
   }
 
   empilha(p, d, mem, r, est);
-  controle(d->opcode, est, s);
+  controle(d->opcode, est, s, d);
   escreve_ri(r->ri, s->EscRI, mem[r->pc]);
 
   //atualiza o rdm acessando memória de dados
@@ -132,7 +132,6 @@ int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d, Registradores
   //executa operação da ula
   ULA(ULA_fontA(r->pc, r->a, s->ULAFontA), ULA_fontB(r->b, d->imm, s->ULAFontB), s->ControleULA, saida);
   r->ula_saida = saida->resultado;
-
   escreve_br(&r->br[RegiDest(d->rt, d->rd, s->RegDest)], s->EscReg, MemReg(r->ula_saida, d->dado, s->MemParaReg));
 
   r->a = r->br[d->rs];
@@ -325,7 +324,7 @@ int binarioParaDecimal(const char *bin, int sinal) {
 }
 
 // Controle para o proximo estado
-int controle(int opcode, int *est, Sinais *s) {
+int controle(int opcode, int *est, Sinais *s, Decodificador *d) {
 
   switch(*est) {
   case 0:
@@ -436,7 +435,7 @@ int controle(int opcode, int *est, Sinais *s) {
     s->EscReg = 0;
     s->ULAFontA = 1;
     s->ULAFontB = 0;
-    s->ControleULA = 1;
+    s->ControleULA = d->funct;
     s->FontePC = 0;
     s->Branch = 0;
     break;
@@ -450,7 +449,7 @@ int controle(int opcode, int *est, Sinais *s) {
     s->EscReg = 1;
     s->ULAFontA = 1;
     s->ULAFontB = 0;
-    s->ControleULA = 0;
+    s->ControleULA = d->funct;
     s->FontePC = 0;
     s->Branch = 0;
     break;
