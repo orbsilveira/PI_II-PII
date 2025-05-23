@@ -82,7 +82,7 @@ void escreve_pc(int *pc, int EscPC, int FontePC, int Branch, int flag_zero);
 
 //MUX
 int IOuD(int IouD, int pc, int ula_saida); //Seleciona se o endereco a ser acessado vem do PC ou do IMEDIATO
-int PCFonte(int resul, int reg_ula, int FontePC); // Seleciona se o incremento do PC vem da soma com o IMEDIATO 1 ou do BRANCH EQUAL
+int PCFonte(int resul, int reg_ula, int FontePC, Decodificador *d); // Seleciona se o incremento do PC vem da soma com o IMEDIATO 1 ou do BRANCH EQUAL
 int ULA_fontA(int pc,int a,int ULAFontA); //Seleciona o primeiro operando da ULA
 int ULA_fontB(int b,int imm,int ULAFontB);//Seleciona o segundo operando da ULA
 int RegiDest(int rt, int rd, int RegDest);
