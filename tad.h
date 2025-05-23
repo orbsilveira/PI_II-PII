@@ -99,7 +99,7 @@ void print_br(int *r);
 void printReg(Registradores *r);
 void printInstrucao(Decodificador *d);
 int executa_step(char (*mem)[17],Instrucao *in,Decodificador *d,Registradores *,Pilha *p,Sinais *s,ALUout *saida,int *est);
-int controle(int opcode, int *est,Sinais *s);
+int controle(int opcode, int *est,Sinais *s, Decodificador *d);
 void estado(int *est,int opcode);
 void decodificarInstrucao(const char *bin, Instrucao *in, Decodificador *d);
 void copiarBits(const char *instrucao, char *destino, int inicio, int tamanho);
