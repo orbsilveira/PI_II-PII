@@ -146,7 +146,7 @@ int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d, Registradores
     }
   }
 
-  escreve_pc(&r->pc, s->EscPC, PCFonte(saida->resultado, r->ula_saida, s->FontePC), s->Branch, saida->flag_zero);
+  escreve_pc(&r->pc, s->EscPC, PCFonte(saida->resultado, r->ula_saida, s->FontePC, d), s->Branch, saida->flag_zero);
 
   infoEstado(est, d, saida, r);
 
@@ -655,14 +655,14 @@ int IOuD(int IouD, int pc, int ula_saida) {
     return pc;
 }
 
-int PCFonte(int resul, int reg_ula, int FontePC) {
+int PCFonte(int resul, int reg_ula, int FontePC, Decodificador *d) {
   switch (FontePC) {
   case 0:
     return resul;
   case 1:
     return reg_ula;
   case 2:
-    return reg_ula;
+    return d->addr;
   default:
     return resul;
   }
