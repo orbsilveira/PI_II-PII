@@ -300,32 +300,22 @@ int executa_step(char (*mem)[17], Instrucao *in, Decodificador *d, Registradores
   }
 
   empilha(p, d, mem, r, est);
-  controle(d->opcode, est, s);
-
-//#############################################
-  if ((d->opcode == 11) || (d->opcode == 15))
-  {
-    while (r->br[d->rs] < 128)
-    {
-      ULA(r->br[d->rs], 32, 0, saida);
-      r->br[d->rs] = saida->resultado;
-    }
-  }
-//#############################################
-
-  escreve_ri(r->ri, s->EscRI, mem[r->pc]);
-
+  
+  escreve_ri(r->ri, s->EscRI, mem[IOuD(s->IouD, r->PC, r->ula_saida]);
+	strcpy(r->rdm, mem[IOuD(s->IouD, r->PC, r->ula_saida]);
+  
   //atualiza o rdm acessando memória de dados
-  if(s->IouD == 1) {
+  /*if(s->IouD == 1) {
     endereco_dados = r->ula_saida;
     if(endereco_dados >= 128 && endereco_dados < 256) {
       strcpy(r->rdm, mem[endereco_dados]);
       decodifica_dado(r->rdm, in, d);
     }
-  }
+  }*/
 
   decodificarInstrucao(r->ri, in, d);
-
+  controle(d->opcode, est, s); 
+  
   //executa operação da ula
   ULA(ULA_fontA(r->pc, r->a, s->ULAFontA), ULA_fontB(r->b, d->imm, s->ULAFontB), s->ControleULA, saida);
   r->ula_saida = saida->resultado;
@@ -432,7 +422,6 @@ void infoEstado(int *est, Decodificador *d, ALUout *saida, Registradores *r) {
     break;
   }
 }
-
 
 int RegiDest(int rt, int rd, int RegDest) {
   switch (RegDest) {
